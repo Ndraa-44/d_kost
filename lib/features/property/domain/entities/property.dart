@@ -5,6 +5,7 @@ class Property {
   final String price;
   final String imageUrl;
   final double rating;
+  final String category; // Kost, Villa, Homestay
 
   Property({
     required this.id,
@@ -13,5 +14,6 @@ class Property {
     required this.price,
     required this.imageUrl,
     required this.rating,
+    required this.category,
   });
 }

@@ -34,7 +34,7 @@ class _MainScreenState extends State<MainScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Discover'),
           BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Saved'),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Favorit'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
         ],
       ),
