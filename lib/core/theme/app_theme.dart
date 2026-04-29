@@ -15,7 +15,7 @@ class AppTheme {
       ),
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
-        background: AppColors.background,
+        surface: AppColors.background,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../app/router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/login_prompt_widget.dart';
+import '../../../auth/domain/entities/user.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
-import '../../../auth/presentation/pages/login_page.dart';
 
+/// Profile page showing user info, account settings, and support.
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
@@ -16,81 +22,25 @@ class ProfilePage extends StatelessWidget {
         if (state is AuthAuthenticated) {
           return _ProfileContent(user: state.user);
         }
-        return _ProfileLoginPrompt();
-      },
-    );
-  }
-}
-
-// ─────────────── BELUM LOGIN ───────────────
-class _ProfileLoginPrompt extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Profil')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(28),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.person_rounded,
-                    size: 64, color: AppColors.primary.withOpacity(0.5)),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Anda Belum Login',
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Login untuk mengelola profil,\npesanan, dan preferensi Anda.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade500, height: 1.5),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginPage()),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: const Text('Masuk Sekarang',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white)),
-                ),
-              ),
-            ],
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(title: const Text(AppStrings.profile)),
+          body: LoginPromptWidget(
+            title: AppStrings.notLoggedIn,
+            subtitle: AppStrings.loginPromptProfile,
+            icon: Icons.person_rounded,
+            onLoginPressed: () => context.push(AppRouter.loginPath),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
 // ─────────────── SUDAH LOGIN ───────────────
 class _ProfileContent extends StatelessWidget {
-  final dynamic user;
+  /// Strongly typed [User] instead of dynamic.
+  final User user;
 
   const _ProfileContent({required this.user});
 
@@ -101,12 +51,12 @@ class _ProfileContent extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildProfileHeader(context),
-            const SizedBox(height: 24),
+            _buildProfileHeader(),
+            const SizedBox(height: AppSpacing.lg),
             _buildMenuSection(context),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             _buildSupportSection(context),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             _buildLogoutButton(context),
             const SizedBox(height: 40),
           ],
@@ -115,7 +65,7 @@ class _ProfileContent extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context) {
+  Widget _buildProfileHeader() {
     return Stack(
       alignment: Alignment.topCenter,
       children: [
@@ -126,22 +76,31 @@ class _ProfileContent extends StatelessWidget {
           decoration: const BoxDecoration(
             color: AppColors.primary,
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(32),
-              bottomRight: Radius.circular(32),
+              bottomLeft: Radius.circular(AppSpacing.radiusXxl),
+              bottomRight: Radius.circular(AppSpacing.radiusXxl),
             ),
           ),
         ),
         // White Card
         Container(
           width: double.infinity,
-          margin: const EdgeInsets.only(top: 150, left: 24, right: 24),
-          padding: const EdgeInsets.only(top: 56, bottom: 24, left: 24, right: 24),
+          margin: const EdgeInsets.only(
+            top: 150,
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+          ),
+          padding: const EdgeInsets.only(
+            top: 56,
+            bottom: AppSpacing.lg,
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+          ),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: AppColors.cardShadow,
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -167,7 +126,7 @@ class _ProfileContent extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                user.phoneNumber ?? '-',
+                user.phoneNumber,
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.textSecondary,
@@ -176,7 +135,7 @@ class _ProfileContent extends StatelessWidget {
             ],
           ),
         ),
-        // Avatar positioned overlapping
+        // Avatar
         Positioned(
           top: 106,
           child: Container(
@@ -188,7 +147,8 @@ class _ProfileContent extends StatelessWidget {
             child: const CircleAvatar(
               radius: 40,
               backgroundColor: Color(0xFFE2E8F0),
-              child: Icon(Icons.person_outline, size: 40, color: Color(0xFF64748B)),
+              child: Icon(Icons.person_outline,
+                  size: 40, color: Color(0xFF64748B)),
             ),
           ),
         ),
@@ -198,40 +158,40 @@ class _ProfileContent extends StatelessWidget {
 
   Widget _buildMenuSection(BuildContext context) {
     return _buildCardSection(
-      title: 'Akun',
+      title: AppStrings.accountSection,
       items: [
         _MenuItem(
           icon: Icons.person_add_alt_1,
-          label: 'Mulai Menyewakan',
-          subtitle: 'Daftar Sebagai Pemilik Kos',
-          onTap: () => _showComingSoon(context, 'Mulai Menyewakan'),
+          label: AppStrings.startRenting,
+          subtitle: AppStrings.startRentingSub,
+          onTap: () => _showComingSoon(context, AppStrings.startRenting),
         ),
         _MenuItem(
           icon: Icons.receipt_long,
-          label: 'Pesanan Saya',
-          onTap: () => _showComingSoon(context, 'Pesanan Saya'),
+          label: AppStrings.myOrders,
+          onTap: () => _showComingSoon(context, AppStrings.myOrders),
         ),
         _MenuItem(
           icon: Icons.admin_panel_settings_outlined,
-          label: 'Verifikasi Akun',
-          subtitle: 'Akun belum diverifikasi',
+          label: AppStrings.verifyAccount,
+          subtitle: AppStrings.verifyAccountSub,
           hasWarning: true,
-          onTap: () => _showComingSoon(context, 'Verifikasi Akun'),
+          onTap: () => _showComingSoon(context, AppStrings.verifyAccount),
         ),
         _MenuItem(
           icon: Icons.person_outline_rounded,
-          label: 'Edit Profil',
-          onTap: () => _showComingSoon(context, 'Edit Profil'),
+          label: AppStrings.editProfile,
+          onTap: () => _showComingSoon(context, AppStrings.editProfile),
         ),
         _MenuItem(
           icon: Icons.lock_outline_rounded,
-          label: 'Metode Pembayaran',
-          onTap: () => _showComingSoon(context, 'Metode Pembayaran'),
+          label: AppStrings.paymentMethod,
+          onTap: () => _showComingSoon(context, AppStrings.paymentMethod),
         ),
         _MenuItem(
           icon: Icons.notifications_outlined,
-          label: 'Notifikasi',
-          onTap: () => _showComingSoon(context, 'Notifikasi'),
+          label: AppStrings.notifications,
+          onTap: () => _showComingSoon(context, AppStrings.notifications),
         ),
       ],
     );
@@ -239,36 +199,38 @@ class _ProfileContent extends StatelessWidget {
 
   Widget _buildSupportSection(BuildContext context) {
     return _buildCardSection(
-      title: 'Dukungan',
+      title: AppStrings.supportSection,
       items: [
         _MenuItem(
           icon: Icons.help_outline_rounded,
-          label: 'Pusat Bantuan',
-          onTap: () => _showComingSoon(context, 'Pusat Bantuan'),
+          label: AppStrings.helpCenter,
+          onTap: () => _showComingSoon(context, AppStrings.helpCenter),
         ),
         _MenuItem(
           icon: Icons.description_outlined,
-          label: 'Syarat & Ketentuan',
-          onTap: () => _showComingSoon(context, 'Syarat & Ketentuan'),
+          label: AppStrings.termsConditions,
+          onTap: () => _showComingSoon(context, AppStrings.termsConditions),
         ),
         _MenuItem(
           icon: Icons.shield_outlined,
-          label: 'Kebijakan Privasi',
-          onTap: () => _showComingSoon(context, 'Kebijakan Privasi'),
+          label: AppStrings.privacyPolicy,
+          onTap: () => _showComingSoon(context, AppStrings.privacyPolicy),
         ),
       ],
     );
   }
 
-  Widget _buildCardSection(
-      {required String title, required List<_MenuItem> items}) {
+  Widget _buildCardSection({
+    required String title,
+    required List<_MenuItem> items,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl - 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 8),
+            padding: const EdgeInsets.only(left: 4, bottom: AppSpacing.sm),
             child: Text(
               title,
               style: const TextStyle(
@@ -280,11 +242,11 @@ class _ProfileContent extends StatelessWidget {
           ),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              color: AppColors.cardBackground,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -298,10 +260,11 @@ class _ProfileContent extends StatelessWidget {
                   children: [
                     ListTile(
                       leading: Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(AppSpacing.sm),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(10),
+                          color: AppColors.primary.withValues(alpha: 0.08),
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusSm + 2),
                         ),
                         child: Icon(item.icon,
                             color: AppColors.primary, size: 20),
@@ -310,21 +273,30 @@ class _ProfileContent extends StatelessWidget {
                         text: TextSpan(
                           text: item.label,
                           style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimary,
+                          ),
                           children: [
                             if (item.hasWarning)
                               const TextSpan(
-                                  text: ' *',
-                                  style: TextStyle(
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.bold)),
+                                text: ' *',
+                                style: TextStyle(
+                                  color: AppColors.error,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                           ],
                         ),
                       ),
                       subtitle: item.subtitle != null
-                          ? Text(item.subtitle!,
+                          ? Text(
+                              item.subtitle!,
                               style: TextStyle(
-                                  fontSize: 12, color: Colors.grey.shade500))
+                                fontSize: 12,
+                                color: Colors.grey.shade500,
+                              ),
+                            )
                           : null,
                       trailing: Icon(Icons.chevron_right_rounded,
                           color: Colors.grey.shade400),
@@ -332,9 +304,10 @@ class _ProfileContent extends StatelessWidget {
                     ),
                     if (idx < items.length - 1)
                       Divider(
-                          height: 1,
-                          indent: 60,
-                          color: Colors.grey.shade100),
+                        height: 1,
+                        indent: 60,
+                        color: Colors.grey.shade100,
+                      ),
                   ],
                 );
               }).toList(),
@@ -347,25 +320,30 @@ class _ProfileContent extends StatelessWidget {
 
   Widget _buildLogoutButton(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl - 4),
       child: SizedBox(
         width: double.infinity,
         height: 50,
         child: OutlinedButton(
           onPressed: () => _showLogoutDialog(context),
           style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Colors.red, width: 1.5),
+            side: const BorderSide(color: AppColors.error, width: 1.5),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd + 2),
             ),
           ),
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.logout_rounded, color: Colors.red, size: 20),
-              SizedBox(width: 8),
-              Text('Keluar dari Akun',
-                  style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red)),
+              Icon(Icons.logout_rounded, color: AppColors.error, size: 20),
+              SizedBox(width: AppSpacing.sm),
+              Text(
+                AppStrings.logoutButton,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.error,
+                ),
+              ),
             ],
           ),
         ),
@@ -377,28 +355,37 @@ class _ProfileContent extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Keluar',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('Apakah Anda yakin ingin keluar dari akun?'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+        ),
+        title: const Text(
+          AppStrings.logoutTitle,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(AppStrings.logoutConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Batal',
-                style: TextStyle(color: Colors.grey.shade600)),
+            child: Text(
+              AppStrings.cancel,
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              context.read<AuthBloc>().add(LogoutRequested());
+              context.read<AuthBloc>().add(const LogoutRequested());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade600,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              ),
             ),
-            child: const Text('Keluar',
-                style: TextStyle(color: Colors.white)),
+            child: const Text(
+              AppStrings.logoutTitle,
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -408,14 +395,17 @@ class _ProfileContent extends StatelessWidget {
   void _showComingSoon(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$feature — Segera hadir!'),
+        content: Text(AppStrings.comingSoon(feature)),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm + 2),
+        ),
       ),
     );
   }
 }
 
+/// Data class for menu items in profile sections.
 class _MenuItem {
   final IconData icon;
   final String label;
@@ -423,7 +413,7 @@ class _MenuItem {
   final VoidCallback onTap;
   final bool hasWarning;
 
-  _MenuItem({
+  const _MenuItem({
     required this.icon,
     required this.label,
     this.subtitle,

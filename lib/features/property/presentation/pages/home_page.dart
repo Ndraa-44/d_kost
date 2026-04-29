@@ -1,15 +1,24 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../app/router.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../data/datasources/dummy_data.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../data/datasources/property_local_datasource.dart';
 import '../../domain/entities/property.dart';
 import '../bloc/property_bloc.dart';
 import '../bloc/property_event.dart';
 import '../bloc/property_state.dart';
-import 'property_detail_page.dart';
-import 'search_result_page.dart';
 
+/// Home / Discover page — the main landing screen.
+///
+/// Displays:
+/// - Header with gradient
+/// - Search container with category filter
+/// - Promo banner carousel
+/// - Location-based property recommendations
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -18,19 +27,25 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String _selectedLocation = DummyData.jogjaLocations.first;
-  String _selectedCategory = DummyData.categories.first.name;
-  String _selectedSubLocation = DummyData.jogjaLocations.first;
+  String _selectedLocation = PropertyLocalDataSource.jogjaLocations.first;
+  String _selectedCategory = PropertyLocalDataSource.categories.first.name;
+  String _selectedSubLocation = PropertyLocalDataSource.jogjaLocations.first;
 
-  // Initial page ditaruh di angka besar (habis dibagi 3) untuk efek infinite scroll
   final PageController _promoPageController = PageController(initialPage: 3000);
   int _currentPromoPage = 3000;
   Timer? _autoScrollTimer;
 
+  /// Maps category icon names to [IconData] for rendering.
+  static const Map<String, IconData> _categoryIcons = {
+    'kost': Icons.apartment,
+    'villa': Icons.villa,
+    'homestay': Icons.cottage,
+  };
+
   @override
   void initState() {
     super.initState();
-    context.read<PropertyBloc>().add(LoadProperties());
+    context.read<PropertyBloc>().add(const LoadProperties());
     _startAutoScroll();
   }
 
@@ -60,7 +75,7 @@ class _HomePageState extends State<HomePage> {
         child: RefreshIndicator(
           color: AppColors.primary,
           onRefresh: () async {
-            context.read<PropertyBloc>().add(LoadProperties());
+            context.read<PropertyBloc>().add(const LoadProperties());
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -68,13 +83,13 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeader(),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.xl - 4),
                 _buildSearchContainer(),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.lg),
                 _buildPromoBanner(),
                 const SizedBox(height: 28),
                 _buildRecommendationSection(),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.lg),
               ],
             ),
           ),
@@ -86,19 +101,21 @@ class _HomePageState extends State<HomePage> {
   // ─────────────── HEADER ───────────────
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg, 28, AppSpacing.lg, AppSpacing.xl,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
             AppColors.primary,
-            AppColors.primary.withOpacity(0.85),
+            AppColors.primary.withValues(alpha: 0.85),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
+          bottomLeft: Radius.circular(AppSpacing.radiusXxl),
+          bottomRight: Radius.circular(AppSpacing.radiusXxl),
         ),
       ),
       child: Column(
@@ -111,15 +128,15 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Selamat Datang 👋',
+                    AppStrings.welcomeGreeting,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'thekost. App',
+                    AppStrings.appHeaderTitle,
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -131,7 +148,10 @@ class _HomePageState extends State<HomePage> {
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    width: 2,
+                  ),
                 ),
                 child: const CircleAvatar(
                   radius: 22,
@@ -142,9 +162,9 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl - 4),
           const Text(
-            'Temukan Hunian\nIdeal di Jogja',
+            AppStrings.heroTitle,
             style: TextStyle(
               color: Colors.white,
               fontSize: 26,
@@ -160,48 +180,51 @@ class _HomePageState extends State<HomePage> {
   // ─────────────── CONTAINER PENCARIAN ───────────────
   Widget _buildSearchContainer() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(20),
+      margin: AppSpacing.paddingHorizontal,
+      padding: const EdgeInsets.all(AppSpacing.xl - 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFA5B4FC).withOpacity(0.8), // Light purple/blue like image
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.primaryLight.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Kategori Pencarian',
+            AppStrings.searchCategory,
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
-          // Dropdown
+          const SizedBox(height: AppSpacing.md),
+          // Location dropdown
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: _selectedLocation,
                 isExpanded: true,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey),
+                icon: const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.textSecondary,
+                ),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: AppColors.textPrimary,
                 ),
-                items: DummyData.jogjaLocations
+                items: PropertyLocalDataSource.jogjaLocations
                     .map((loc) => DropdownMenuItem(
                           value: loc,
                           child: Row(
                             children: [
                               const Icon(Icons.location_on_outlined,
-                                  color: Colors.grey, size: 18),
+                                  color: AppColors.textSecondary, size: 18),
                               const SizedBox(width: 10),
                               Text(loc),
                             ],
@@ -214,12 +237,13 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          // Category Chips
+          const SizedBox(height: AppSpacing.md),
+          // Category chips
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: DummyData.categories.map((cat) {
+            children: PropertyLocalDataSource.categories.map((cat) {
               final isSelected = _selectedCategory == cat.name;
+              final iconData = _categoryIcons[cat.iconName] ?? Icons.category;
               return Expanded(
                 child: GestureDetector(
                   onTap: () => setState(() => _selectedCategory = cat.name),
@@ -228,22 +252,28 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
                       color: isSelected ? Colors.white : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          cat.icon,
+                          iconData,
                           size: 16,
-                          color: isSelected ? AppColors.primary : Colors.black54,
+                          color: isSelected
+                              ? AppColors.primary
+                              : Colors.black54,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           cat.name,
                           style: TextStyle(
-                            color: isSelected ? AppColors.primary : Colors.black54,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.primary
+                                : Colors.black54,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
                             fontSize: 13,
                           ),
                         ),
@@ -254,24 +284,26 @@ class _HomePageState extends State<HomePage> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 16),
-          // Search Bar
+          const SizedBox(height: AppSpacing.md),
+          // Search bar
           GestureDetector(
             onTap: _navigateToSearchResult,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.search_rounded, color: Colors.grey.shade400, size: 20),
+                  Icon(Icons.search_rounded,
+                      color: Colors.grey.shade400, size: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Temukan yang kamu cari',
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                      AppStrings.searchPlaceholder,
+                      style:
+                          TextStyle(color: Colors.grey.shade500, fontSize: 13),
                     ),
                   ),
                 ],
@@ -296,7 +328,7 @@ class _HomePageState extends State<HomePage> {
             },
             itemBuilder: (context, index) {
               return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
+                margin: AppSpacing.paddingHorizontal,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(18),
@@ -316,7 +348,9 @@ class _HomePageState extends State<HomePage> {
               height: 6,
               width: realIndex == index ? 20 : 6,
               decoration: BoxDecoration(
-                color: realIndex == index ? AppColors.primary : Colors.grey.shade300,
+                color: realIndex == index
+                    ? AppColors.primary
+                    : Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(3),
               ),
             );
@@ -327,14 +361,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _navigateToSearchResult() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SearchResultPage(
-          location: _selectedLocation,
-          category: _selectedCategory,
-        ),
-      ),
+    context.push(
+      AppRouter.searchResultPath,
+      extra: {
+        'location': _selectedLocation,
+        'category': _selectedCategory,
+      },
     );
   }
 
@@ -343,12 +375,12 @@ class _HomePageState extends State<HomePage> {
     return SizedBox(
       height: 36,
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: AppSpacing.paddingHorizontal,
         scrollDirection: Axis.horizontal,
-        itemCount: DummyData.jogjaLocations.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemCount: PropertyLocalDataSource.jogjaLocations.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
-          final loc = DummyData.jogjaLocations[index];
+          final loc = PropertyLocalDataSource.jogjaLocations[index];
           final isSelected = _selectedSubLocation == loc;
           return GestureDetector(
             onTap: () => setState(() => _selectedSubLocation = loc),
@@ -356,7 +388,9 @@ class _HomePageState extends State<HomePage> {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF5A67D8) : Colors.grey.shade300,
+                color: isSelected
+                    ? AppColors.accentPurple
+                    : Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
@@ -364,7 +398,8 @@ class _HomePageState extends State<HomePage> {
                   loc,
                   style: TextStyle(
                     color: isSelected ? Colors.white : Colors.black87,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.w600,
                     fontSize: 13,
                   ),
                 ),
@@ -381,24 +416,24 @@ class _HomePageState extends State<HomePage> {
       builder: (context, state) {
         if (state is PropertyLoading) {
           return const Padding(
-            padding: EdgeInsets.all(48),
+            padding: EdgeInsets.all(AppSpacing.xxl),
             child: Center(child: CircularProgressIndicator()),
           );
         }
         if (state is PropertyLoaded) {
-          // Filter property
           final filteredProps = state.properties.where((p) {
             return p.category == _selectedCategory &&
-                p.location.toLowerCase() == _selectedSubLocation.toLowerCase();
+                p.location.toLowerCase() ==
+                    _selectedSubLocation.toLowerCase();
           }).toList();
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
+                padding: AppSpacing.paddingHorizontal,
                 child: Text(
-                  'Lokasi Kami di Yogyakarta',
+                  AppStrings.locationTitle,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -413,16 +448,20 @@ class _HomePageState extends State<HomePage> {
                 height: 250,
                 child: filteredProps.isEmpty
                     ? const Center(
-                        child: Text('Belum ada properti di lokasi ini.'))
+                        child: Text(AppStrings.noPropertyInLocation),
+                      )
                     : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        padding: AppSpacing.paddingHorizontal,
                         scrollDirection: Axis.horizontal,
                         itemCount: filteredProps.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 16),
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(width: AppSpacing.md),
                         itemBuilder: (context, index) {
                           return SizedBox(
-                            width: 170, // Lebar kartu mengikuti rasio gambar
-                            child: _buildPropertyCard(filteredProps[index]),
+                            width: 170,
+                            child: _PropertyCard(
+                              property: filteredProps[index],
+                            ),
                           );
                         },
                       ),
@@ -437,25 +476,31 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
+}
 
-  Widget _buildPropertyCard(Property property) {
+/// Vertical property card used in the home page recommendation carousel.
+class _PropertyCard extends StatelessWidget {
+  final Property property;
+
+  const _PropertyCard({required this.property});
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PropertyDetailPage(property: property),
-        ),
+      onTap: () => context.push(
+        AppRouter.propertyDetailPath,
+        extra: property,
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
           image: DecorationImage(
             image: NetworkImage(property.imageUrl),
             fit: BoxFit.cover,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -463,13 +508,13 @@ class _HomePageState extends State<HomePage> {
         ),
         child: Stack(
           children: [
-            // Gradient Overlay untuk teks
+            // Gradient overlay
             Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withOpacity(0.85),
+                    Colors.black.withValues(alpha: 0.85),
                     Colors.transparent,
                   ],
                   begin: Alignment.bottomCenter,
@@ -477,14 +522,14 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            // Isi Konten
+            // Content
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Top icons (Favorite & Rating)
+                  // Top: favorite & rating
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -502,7 +547,8 @@ class _HomePageState extends State<HomePage> {
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusMd),
                         ),
                         child: Row(
                           children: [
@@ -521,7 +567,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  // Bottom Texts (Name & Price)
+                  // Bottom: name & price
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -539,7 +585,7 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         property.price,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 11,
                         ),
                       ),

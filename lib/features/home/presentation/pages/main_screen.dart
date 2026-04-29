@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../property/presentation/pages/home_page.dart';
 import '../../../booking/presentation/pages/booking_page.dart';
 import '../../../saved/presentation/pages/saved_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 
+/// Main screen with bottom navigation bar.
+///
+/// Acts as the shell for the four primary tabs:
+/// Discover, Bookings, Favorites, and Profile.
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -32,10 +37,22 @@ class _MainScreenState extends State<MainScreen> {
         selectedItemColor: Theme.of(context).primaryColor,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Discover'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Favorit'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.explore),
+            label: AppStrings.navDiscover,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: AppStrings.navBookings,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_border),
+            label: AppStrings.navFavorites,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: AppStrings.navProfile,
+          ),
         ],
       ),
     );

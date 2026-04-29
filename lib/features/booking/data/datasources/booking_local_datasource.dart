@@ -1,11 +1,15 @@
 import '../../domain/entities/booking.dart';
 
-class BookingDummyData {
-  static final List<Booking> bookings = [
+/// Local data source that provides mock booking data.
+///
+/// Will be replaced by a Supabase data source in the future.
+class BookingLocalDataSource {
+  /// Mock booking records.
+  static const List<Booking> bookings = [
     // ── Aktif ──
     Booking(
       id: 'B001',
-      propertyName: 'D\'Kost Exclusive Jakal',
+      propertyName: "D'Kost Exclusive Jakal",
       propertyImage:
           'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=500',
       location: 'Sleman',

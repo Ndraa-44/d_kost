@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../main/presentation/pages/main_screen.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../app/router.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 
+/// Splash screen shown on app launch.
+///
+/// Displays the app branding for 2 seconds, then navigates
+/// to the main screen using GoRouter.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -12,18 +19,20 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-      );
-    });
+    _navigateToHome();
+  }
+
+  Future<void> _navigateToHome() async {
+    await Future.delayed(const Duration(seconds: 2));
+    // Guard: only navigate if the widget is still mounted
+    if (!mounted) return;
+    context.go(AppRouter.homePath);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: AppColors.primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -31,7 +40,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const Icon(Icons.home_work_rounded, size: 80, color: Colors.white),
             const SizedBox(height: 16),
             const Text(
-              'thekost.',
+              AppStrings.appName,
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
@@ -41,10 +50,10 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Temukan Kos Idamanmu',
+              AppStrings.appTagline,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
               ),
             ),
           ],

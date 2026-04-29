@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../app/router.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
-import '../../../main/presentation/pages/main_screen.dart';
 
+/// Login page for user authentication.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -17,22 +21,29 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
+            if (context.canPop()) {
+              context.pop();
             } else {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const MainScreen()),
-              );
+              context.go(AppRouter.homePath);
             }
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+              ),
             );
           }
         },
@@ -45,18 +56,18 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    'Masuk ke D\'Kost',
+                    AppStrings.loginTitle,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                      color: AppColors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Silakan masuk untuk memesan properti idaman Anda.',
-                    style: TextStyle(color: Colors.grey),
+                    AppStrings.loginSubtitle,
+                    style: TextStyle(color: AppColors.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -97,9 +108,12 @@ class _LoginPageState extends State<LoginPage> {
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
                           )
-                        : const Text('Masuk'),
+                        : const Text(AppStrings.loginButton),
                   ),
                 ],
               ),

@@ -36,6 +36,7 @@ migrate_working_dir/
 /coverage/
 .agents/
 skills-lock.json
+ARCHITECTURE.md
 
 # Symbolication related
 app.*.symbols

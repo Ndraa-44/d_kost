@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../app/router.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../data/datasources/dummy_data.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/property_list_card.dart';
+import '../../data/datasources/property_local_datasource.dart';
 import '../../domain/entities/property.dart';
-import 'property_detail_page.dart';
 
+/// Search results page — shows properties filtered by category & location.
 class SearchResultPage extends StatefulWidget {
   final String location;
   final String category;
@@ -31,7 +36,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
   void _filterProperties() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _results = DummyData.properties.where((p) {
+      _results = PropertyLocalDataSource.properties.where((p) {
         final matchCategory =
             p.category.toLowerCase() == widget.category.toLowerCase();
         final matchLocation =
@@ -65,18 +70,20 @@ class _SearchResultPageState extends State<SearchResultPage> {
           // Search input
           Container(
             color: AppColors.primary,
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl - 4,
+            ),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               ),
               child: TextField(
                 controller: _searchController,
                 onChanged: (_) => _filterProperties(),
                 decoration: InputDecoration(
-                  hintText: 'Cari nama properti...',
+                  hintText: AppStrings.searchPropertyHint,
                   hintStyle: TextStyle(color: Colors.grey.shade400),
                   border: InputBorder.none,
                   icon: Icon(Icons.search, color: Colors.grey.shade400),
@@ -87,10 +94,13 @@ class _SearchResultPageState extends State<SearchResultPage> {
           // Info bar
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md - 4,
+            ),
             color: Colors.white,
             child: Text(
-              '${_results.length} properti ditemukan',
+              AppStrings.propertiesFound(_results.length),
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 13,
@@ -104,10 +114,16 @@ class _SearchResultPageState extends State<SearchResultPage> {
             child: _results.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(AppSpacing.lg),
                     itemCount: _results.length,
                     itemBuilder: (context, index) {
-                      return _buildResultCard(_results[index]);
+                      return PropertyListCard(
+                        property: _results[index],
+                        onTap: () => context.push(
+                          AppRouter.propertyDetailPath,
+                          extra: _results[index],
+                        ),
+                      );
                     },
                   ),
           ),
@@ -122,134 +138,30 @@ class _SearchResultPageState extends State<SearchResultPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.search_off_rounded, size: 80, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           Text(
-            'Tidak ada ${widget.category} ditemukan\ndi ${widget.location}',
+            AppStrings.noResultFound(widget.category, widget.location),
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.lg),
           OutlinedButton.icon(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             icon: const Icon(Icons.arrow_back_rounded),
-            label: const Text('Ubah Pencarian'),
+            label: const Text(AppStrings.changeSearch),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primary,
-              side: BorderSide(color: AppColors.primary),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              side: const BorderSide(color: AppColors.primary),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.md - 4,
+              ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildResultCard(Property prop) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => PropertyDetailPage(property: prop)),
-      ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.horizontal(
-                  left: Radius.circular(16)),
-              child: Image.network(
-                prop.imageUrl,
-                width: 120,
-                height: 120,
-                fit: BoxFit.cover,
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        prop.category,
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      prop.name,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 14),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on_outlined,
-                            size: 13, color: Colors.grey.shade500),
-                        const SizedBox(width: 4),
-                        Text(prop.location,
-                            style: TextStyle(
-                                color: Colors.grey.shade500, fontSize: 12)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          prop.price,
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            const Icon(Icons.star_rounded,
-                                color: Colors.amber, size: 14),
-                            const SizedBox(width: 2),
-                            Text(prop.rating.toString(),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

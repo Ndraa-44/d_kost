@@ -1,17 +1,85 @@
-# d_kost
+# TheKost — D'Kost Mobile App
 
-A new Flutter project.
+> Aplikasi pencarian kost, villa, dan homestay di Yogyakarta.
 
-## Getting Started
+## 🛠 Tech Stack
 
-This project is a starting point for a Flutter application.
+| Technology | Purpose |
+|---|---|
+| [Flutter](https://flutter.dev) | Cross-platform UI framework |
+| [flutter_bloc](https://pub.dev/packages/flutter_bloc) | State management (BLoC pattern) |
+| [equatable](https://pub.dev/packages/equatable) | Value-based equality for entities & states |
+| [go_router](https://pub.dev/packages/go_router) | Declarative routing |
 
-A few resources to get you started if this is your first Flutter project:
+## 🚀 Getting Started
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+### Prerequisites
+- Flutter SDK `^3.11.5`
+- Dart SDK (included with Flutter)
+- Android Studio / VS Code
+- Android Emulator or physical device
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Run the app
+```bash
+# Install dependencies
+flutter pub get
+
+# Run in debug mode
+flutter run
+
+# Build debug APK
+flutter build apk --debug
+```
+
+### Code analysis
+```bash
+flutter analyze
+```
+
+## 📁 Project Structure
+
+```
+lib/
+├── app/                           # Application-level configs
+│   ├── app.dart                   # Root widget (DI + theme + router)
+│   └── router.dart                # GoRouter centralized routing
+│
+├── core/                          # Shared utilities
+│   ├── constants/
+│   │   ├── app_colors.dart        # Color palette
+│   │   ├── app_spacing.dart       # Spacing & radius values
+│   │   └── app_strings.dart       # All UI text (i18n-ready)
+│   ├── theme/
+│   │   └── app_theme.dart         # Material ThemeData
+│   └── widgets/                   # Reusable widgets
+│       ├── login_prompt_widget.dart
+│       └── property_list_card.dart
+│
+├── features/                      # Feature-based modules
+│   ├── auth/                      # Authentication
+│   │   ├── data/                  # Data sources & repository impl
+│   │   ├── domain/                # Entities & repository contracts
+│   │   └── presentation/         # BLoC & UI
+│   ├── booking/                   # Booking management
+│   ├── home/                      # Main screen (bottom nav)
+│   ├── profile/                   # User profile
+│   ├── property/                  # Property listings
+│   ├── saved/                     # Favorites
+│   └── splash/                    # Splash screen
+│
+└── main.dart                      # Entry point
+```
+
+## 🏗 Architecture
+
+This project follows **Feature-first Clean Architecture** with 3 layers:
+
+1. **Data Layer** — Data sources & repository implementations
+2. **Domain Layer** — Entities & repository contracts (abstractions)
+3. **Presentation Layer** — BLoC state management & UI widgets
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for a detailed explanation.
+
+## 📝 License
+
+Private project — all rights reserved.

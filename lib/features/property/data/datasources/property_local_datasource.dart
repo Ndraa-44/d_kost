@@ -1,9 +1,14 @@
-import 'package:flutter/material.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/property.dart';
 
-class DummyData {
-  // Kabupaten/Kota di D.I. Yogyakarta
+/// Local data source that provides mock property data.
+///
+/// This class will be replaced by a Supabase data source
+/// when the backend is connected. The [PropertyRepository]
+/// abstraction ensures this swap requires zero changes in
+/// the BLoC or UI layer.
+class PropertyLocalDataSource {
+  /// All available locations in Yogyakarta.
   static const List<String> jogjaLocations = [
     'Kota Yogyakarta',
     'Sleman',
@@ -12,13 +17,15 @@ class DummyData {
     'Kulon Progo',
   ];
 
+  /// Property categories.
   static const List<Category> categories = [
-    Category(id: '1', name: 'Kost', icon: Icons.apartment),
-    Category(id: '2', name: 'Villa', icon: Icons.villa),
-    Category(id: '3', name: 'Homestay', icon: Icons.cottage),
+    Category(id: '1', name: 'Kost', iconName: 'kost'),
+    Category(id: '2', name: 'Villa', iconName: 'villa'),
+    Category(id: '3', name: 'Homestay', iconName: 'homestay'),
   ];
 
-  static final List<Property> properties = [
+  /// All available property listings.
+  static const List<Property> properties = [
     // ── Kost ──
     Property(
       id: '1',

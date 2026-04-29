@@ -1,4 +1,21 @@
-class Booking {
+import 'package:equatable/equatable.dart';
+
+/// Status of a property booking.
+enum BookingStatus {
+  /// Currently active booking.
+  active,
+
+  /// Completed/checked-out booking.
+  completed,
+
+  /// Cancelled booking.
+  cancelled,
+}
+
+/// Represents a booking record for a property.
+///
+/// Domain entity — immutable and framework-agnostic.
+class Booking extends Equatable {
   final String id;
   final String propertyName;
   final String propertyImage;
@@ -8,7 +25,7 @@ class Booking {
   final String price;
   final BookingStatus status;
 
-  Booking({
+  const Booking({
     required this.id,
     required this.propertyName,
     required this.propertyImage,
@@ -18,10 +35,8 @@ class Booking {
     required this.price,
     required this.status,
   });
-}
 
-enum BookingStatus {
-  active,    // Aktif
-  completed, // Selesai
-  cancelled, // Dibatalkan
+  @override
+  List<Object?> get props =>
+      [id, propertyName, propertyImage, location, checkIn, checkOut, price, status];
 }

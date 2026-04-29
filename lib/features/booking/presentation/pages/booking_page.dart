@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../app/router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/widgets/login_prompt_widget.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
-import '../../../auth/presentation/pages/login_page.dart';
-import '../../data/datasources/booking_dummy_data.dart';
+import '../../data/datasources/booking_local_datasource.dart';
 import '../../domain/entities/booking.dart';
 
+/// Booking / Orders page showing user's bookings.
 class BookingPage extends StatelessWidget {
   const BookingPage({super.key});
 
@@ -15,82 +20,27 @@ class BookingPage extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthAuthenticated) {
-          return _BookingContent();
+          return const _BookingContent();
         }
-        return _BookingLoginPrompt();
-      },
-    );
-  }
-}
-
-// ─────────────── BELUM LOGIN ───────────────
-class _BookingLoginPrompt extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Pesanan Saya')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(28),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.receipt_long_rounded,
-                    size: 64, color: AppColors.primary.withOpacity(0.5)),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Lihat Pesanan Anda',
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Silakan login untuk melihat dan mengelola\npesanan properti Anda.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade500, height: 1.5),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginPage()),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: const Text('Masuk Sekarang',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white)),
-                ),
-              ),
-            ],
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(title: const Text(AppStrings.myBookings)),
+          body: LoginPromptWidget(
+            title: AppStrings.bookingLoginTitle,
+            subtitle: AppStrings.bookingLoginSubtitle,
+            icon: Icons.receipt_long_rounded,
+            onLoginPressed: () => context.push(AppRouter.loginPath),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
 // ─────────────── SUDAH LOGIN ───────────────
 class _BookingContent extends StatelessWidget {
+  const _BookingContent();
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -98,21 +48,21 @@ class _BookingContent extends StatelessWidget {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: const Text('Pesanan Saya'),
-          bottom: TabBar(
+          title: const Text(AppStrings.myBookings),
+          bottom: const TabBar(
             indicatorColor: Colors.white,
             indicatorWeight: 3,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white60,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-            tabs: const [
-              Tab(text: 'Aktif'),
-              Tab(text: 'Selesai'),
-              Tab(text: 'Dibatalkan'),
+            labelStyle: TextStyle(fontWeight: FontWeight.w600),
+            tabs: [
+              Tab(text: AppStrings.bookingActive),
+              Tab(text: AppStrings.bookingCompleted),
+              Tab(text: AppStrings.bookingCancelled),
             ],
           ),
         ),
-        body: TabBarView(
+        body: const TabBarView(
           children: [
             _BookingListView(status: BookingStatus.active),
             _BookingListView(status: BookingStatus.completed),
@@ -131,24 +81,24 @@ class _BookingListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bookings = BookingDummyData.bookings
+    final bookings = BookingLocalDataSource.bookings
         .where((b) => b.status == status)
         .toList();
 
-    if (bookings.isEmpty) return _buildEmpty(context);
+    if (bookings.isEmpty) return _buildEmpty();
 
     return ListView.builder(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl - 4),
       itemCount: bookings.length,
       itemBuilder: (_, i) => _BookingCard(booking: bookings[i]),
     );
   }
 
-  Widget _buildEmpty(BuildContext context) {
+  Widget _buildEmpty() {
     final messages = {
-      BookingStatus.active: 'Belum ada pesanan aktif.',
-      BookingStatus.completed: 'Belum ada pesanan selesai.',
-      BookingStatus.cancelled: 'Tidak ada pesanan yang dibatalkan.',
+      BookingStatus.active: AppStrings.noActiveBooking,
+      BookingStatus.completed: AppStrings.noCompletedBooking,
+      BookingStatus.cancelled: AppStrings.noCancelledBooking,
     };
     final icons = {
       BookingStatus.active: Icons.hourglass_empty_rounded,
@@ -161,7 +111,7 @@ class _BookingListView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icons[status], size: 64, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           Text(
             messages[status]!,
             style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
@@ -181,13 +131,13 @@ class _BookingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.cardShadow,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -197,8 +147,9 @@ class _BookingCard extends StatelessWidget {
         children: [
           // Image + Badge
           ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(16)),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppSpacing.radiusLg),
+            ),
             child: Stack(
               children: [
                 Image.network(
@@ -217,14 +168,16 @@ class _BookingCard extends StatelessWidget {
           ),
           // Info
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   booking.propertyName,
                   style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Row(
@@ -232,23 +185,33 @@ class _BookingCard extends StatelessWidget {
                     Icon(Icons.location_on_outlined,
                         size: 14, color: Colors.grey.shade500),
                     const SizedBox(width: 4),
-                    Text(booking.location,
-                        style: TextStyle(
-                            color: Colors.grey.shade500, fontSize: 13)),
+                    Text(
+                      booking.location,
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md - 4),
                 // Dates row
                 Row(
                   children: [
                     _buildDateChip(
-                        Icons.login_rounded, 'Check-in', booking.checkIn),
-                    const SizedBox(width: 12),
+                      Icons.login_rounded,
+                      AppStrings.checkIn,
+                      booking.checkIn,
+                    ),
+                    const SizedBox(width: AppSpacing.md - 4),
                     _buildDateChip(
-                        Icons.logout_rounded, 'Check-out', booking.checkOut),
+                      Icons.logout_rounded,
+                      AppStrings.checkOut,
+                      booking.checkOut,
+                    ),
                   ],
                 ),
-                const Divider(height: 24),
+                const Divider(height: AppSpacing.lg),
                 // Price + Action
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -256,14 +219,21 @@ class _BookingCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Total',
-                            style: TextStyle(
-                                color: Colors.grey.shade500, fontSize: 12)),
-                        Text(booking.price,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: AppColors.primary)),
+                        Text(
+                          AppStrings.total,
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
+                        ),
+                        Text(
+                          booking.price,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: AppColors.primary,
+                          ),
+                        ),
                       ],
                     ),
                     if (booking.status == BookingStatus.active)
@@ -271,12 +241,13 @@ class _BookingCard extends StatelessWidget {
                         onPressed: () {},
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.primary,
-                          side: BorderSide(color: AppColors.primary),
+                          side: const BorderSide(color: AppColors.primary),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusSm + 2),
                           ),
                         ),
-                        child: const Text('Lihat Detail'),
+                        child: const Text(AppStrings.viewDetail),
                       ),
                   ],
                 ),
@@ -289,37 +260,39 @@ class _BookingCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge() {
-    Color bgColor;
-    Color textColor;
-    String label;
+    final Color bgColor;
+    final Color textColor;
+    final String label;
 
     switch (booking.status) {
       case BookingStatus.active:
         bgColor = Colors.green.shade50;
         textColor = Colors.green.shade700;
-        label = 'Aktif';
-        break;
+        label = AppStrings.bookingActive;
       case BookingStatus.completed:
         bgColor = Colors.blue.shade50;
         textColor = Colors.blue.shade700;
-        label = 'Selesai';
-        break;
+        label = AppStrings.bookingCompleted;
       case BookingStatus.cancelled:
         bgColor = Colors.red.shade50;
         textColor = Colors.red.shade700;
-        label = 'Dibatalkan';
-        break;
+        label = AppStrings.bookingCancelled;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
       ),
-      child: Text(label,
-          style: TextStyle(
-              color: textColor, fontSize: 11, fontWeight: FontWeight.w600)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 
@@ -329,21 +302,26 @@ class _BookingCard extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm + 2),
         ),
         child: Row(
           children: [
             Icon(icon, size: 16, color: AppColors.primary),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style:
-                        TextStyle(color: Colors.grey.shade500, fontSize: 10)),
-                Text(date,
-                    style: const TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w600)),
+                Text(
+                  label,
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
+                ),
+                Text(
+                  date,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ],
