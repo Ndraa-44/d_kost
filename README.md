@@ -1,4 +1,4 @@
-# TheKost — D'Kost Mobile App
+# TheKost — thekost Mobile App
 
 > Aplikasi pencarian kost, villa, dan homestay di Yogyakarta.
 
